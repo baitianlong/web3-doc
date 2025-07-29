@@ -63,16 +63,6 @@ export default defineConfig({
         link: '/wagmi/basics/introduction',
         activeMatch: '^/wagmi/'
       },
-      { 
-        text: 'Web3 工具', 
-        link: '/tools/hardhat',
-        activeMatch: '^/tools/'
-      },
-      { 
-        text: '最佳实践', 
-        link: '/best-practices/security',
-        activeMatch: '^/best-practices/'
-      }
     ],
 
     sidebar: {
@@ -339,43 +329,11 @@ export default defineConfig({
               collapsed: false,
               items: [
                 { text: 'DeFi 应用开发', link: '/wagmi/examples/defi-app' },
-                { text: 'NFT 市场开发', link: '/wagmi/examples/nft-marketplace' },
-                { text: '多链应用', link: '/wagmi/examples/multi-chain' },
-                { text: '钱包连接器', link: '/wagmi/examples/wallet-connector' }
               ]
             }
           ]
         }
       ],
-      '/tools/': [
-        {
-          text: 'Web3 开发工具',
-          collapsed: false,
-          items: [
-            { text: 'Hardhat 开发框架', link: '/tools/hardhat' },
-            { text: 'Remix IDE', link: '/tools/remix' },
-            { text: 'Truffle 框架', link: '/tools/truffle' },
-            { text: 'Foundry 工具链', link: '/tools/foundry' },
-            { text: 'MetaMask 集成', link: '/tools/metamask' },
-            { text: 'IPFS 存储', link: '/tools/ipfs' },
-            { text: 'The Graph 索引', link: '/tools/thegraph' }
-          ]
-        }
-      ],
-      '/best-practices/': [
-        {
-          text: '最佳实践',
-          collapsed: false,
-          items: [
-            { text: '安全性', link: '/best-practices/security' },
-            { text: 'Gas 优化', link: '/best-practices/gas-optimization' },
-            { text: '设计模式', link: '/best-practices/patterns' },
-            { text: '测试策略', link: '/best-practices/testing' },
-            { text: '部署流程', link: '/best-practices/deployment' },
-            { text: '代码审计', link: '/best-practices/audit' }
-          ]
-        }
-      ]
     },
 
     socialLinks: [

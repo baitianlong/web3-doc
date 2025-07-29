@@ -1,329 +1,171 @@
 # 结构体和枚举
 
-结构体（Structs）和枚举（Enums）是 Solidity 中用于创建自定义数据类型的重要工具。它们帮助开发者组织复杂的数据结构，提高代码的可读性和可维护性。
+结构体（Struct）和枚举（Enum）是 Solidity 中常用的自定义数据类型，用于组织和管理复杂的数据结构。合理使用结构体和枚举可以让合约代码更清晰、可维护性更高。
 
-## 结构体 (Structs)
+## 结构体（Struct）
 
-### 基本结构体定义
+### 结构体定义与使用
 
 ```solidity
-contract BasicStructs {
-    // 定义用户结构体
+contract StructExample {
+    // 定义结构体
     struct User {
-        string name;
-        uint age;
-        address wallet;
-        bool isActive;
-    }
-    
-    // 定义产品结构体
-    struct Product {
         uint id;
         string name;
-        uint price;
-        uint stock;
-        address seller;
+        address account;
+        bool isActive;
     }
-    
-    // 存储结构体
-    User public admin;
-    mapping(address => User) public users;
-    Product[] public products;
-    
-    function createUser(
-        string memory _name,
-        uint _age
-    ) public {
-        // 方法1：直接赋值
-        users[msg.sender] = User({
+
+    // 结构体数组
+    User[] public users;
+    // 地址到结构体的映射
+    mapping(address => User) public userInfo;
+
+    // 添加用户
+    function addUser(uint _id, string memory _name) public {
+        User memory newUser = User({
+            id: _id,
             name: _name,
-            age: _age,
-            wallet: msg.sender,
+            account: msg.sender,
             isActive: true
         });
+        users.push(newUser);
+        userInfo[msg.sender] = newUser;
     }
-    
-    function createUserAlternative(
-        string memory _name,
-        uint _age
-    ) public {
-        // 方法2：先声明再赋值
-        User memory newUser;
-        newUser.name = _name;
-        newUser.age = _age;
-        newUser.wallet = msg.sender;
-        newUser.isActive = true;
-        
-        users[msg.sender] = newUser;
+
+    // 获取用户信息
+    function getUser(uint index) public view returns (User memory) {
+        return users[index];
     }
-    
-    function addProduct(
-        string memory _name,
-        uint _price,
-        uint _stock
-    ) public {
-        products.push(Product({
-            id: products.length,
-            name: _name,
-            price: _price,
-            stock: _stock,
-            seller: msg.sender
-        }));
+
+    // 修改结构体字段
+    function deactivateUser(uint index) public {
+        users[index].isActive = false;
+    }
+
+    // 删除用户（将最后一个移到删除位置）
+    function removeUser(uint index) public {
+        require(index < users.length, "Index out of bounds");
+        users[index] = users[users.length - 1];
+        users.pop();
     }
 }
 ```
 
-### 嵌套结构体
+### 结构体嵌套与数组
 
 ```solidity
 contract NestedStructs {
-    struct Address {
-        string street;
-        string city;
-        string country;
-        uint zipCode;
+    struct Book {
+        string title;
+        Author author;
     }
-    
-    struct Contact {
-        string email;
-        string phone;
-    }
-    
-    struct Company {
+    struct Author {
         string name;
-        Address location;
-        Contact contact;
-        uint employeeCount;
-        bool isActive;
+        uint birthYear;
     }
-    
-    struct Employee {
-        uint id;
-        string name;
-        string position;
-        uint salary;
-        Company company;  // 嵌套结构体
-        Address homeAddress;
-    }
-    
-    mapping(uint => Employee) public employees;
-    mapping(address => Company) public companies;
-    uint public nextEmployeeId = 1;
-    
-    function registerCompany(
-        string memory _name,
-        string memory _street,
-        string memory _city,
-        string memory _country,
-        uint _zipCode,
-        string memory _email,
-        string memory _phone
-    ) public {
-        companies[msg.sender] = Company({
-            name: _name,
-            location: Address({
-                street: _street,
-                city: _city,
-                country: _country,
-                zipCode: _zipCode
-            }),
-            contact: Contact({
-                email: _email,
-                phone: _phone
-            }),
-            employeeCount: 0,
-            isActive: true
-        });
-    }
-    
-    function addEmployee(
-        string memory _name,
-        string memory _position,
-        uint _salary,
-        string memory _homeStreet,
-        string memory _homeCity,
-        string memory _homeCountry,
-        uint _homeZipCode
-    ) public {
-        require(companies[msg.sender].isActive, "Company not registered");
-        
-        uint employeeId = nextEmployeeId++;
-        
-        employees[employeeId] = Employee({
-            id: employeeId,
-            name: _name,
-            position: _position,
-            salary: _salary,
-            company: companies[msg.sender],
-            homeAddress: Address({
-                street: _homeStreet,
-                city: _homeCity,
-                country: _homeCountry,
-                zipCode: _homeZipCode
-            })
-        });
-        
-        companies[msg.sender].employeeCount++;
-    }
-    
-    function getEmployeeInfo(uint _employeeId) public view returns (
-        string memory name,
-        string memory position,
-        uint salary,
-        string memory companyName,
-        string memory homeCity
-    ) {
-        Employee memory emp = employees[_employeeId];
-        return (
-            emp.name,
-            emp.position,
-            emp.salary,
-            emp.company.name,
-            emp.homeAddress.city
-        );
-    }
-}
-```
+    Book[] public books;
 
-### 结构体数组
-
-```solidity
-contract StructArrays {
-    struct Transaction {
-        address from;
-        address to;
-        uint amount;
-        uint timestamp;
-        string description;
-        bool isCompleted;
-    }
-    
-    Transaction[] public transactions;
-    mapping(address => uint[]) public userTransactions;
-    
-    function createTransaction(
-        address _to,
-        uint _amount,
-        string memory _description
-    ) public {
-        uint transactionId = transactions.length;
-        
-        transactions.push(Transaction({
-            from: msg.sender,
-            to: _to,
-            amount: _amount,
-            timestamp: block.timestamp,
-            description: _description,
-            isCompleted: false
+    function addBook(string memory _title, string memory _author, uint _year) public {
+        books.push(Book({
+            title: _title,
+            author: Author({name: _author, birthYear: _year})
         }));
-        
-        userTransactions[msg.sender].push(transactionId);
-        userTransactions[_to].push(transactionId);
-    }
-    
-    function completeTransaction(uint _transactionId) public {
-        require(_transactionId < transactions.length, "Invalid transaction ID");
-        require(
-            transactions[_transactionId].to == msg.sender,
-            "Only recipient can complete"
-        );
-        require(
-            !transactions[_transactionId].isCompleted,
-            "Transaction already completed"
-        );
-        
-        transactions[_transactionId].isCompleted = true;
-    }
-    
-    function getTransactionCount() public view returns (uint) {
-        return transactions.length;
-    }
-    
-    function getUserTransactions(address _user) public view returns (uint[] memory) {
-        return userTransactions[_user];
-    }
-    
-    function getTransactionDetails(uint _transactionId) public view returns (
-        address from,
-        address to,
-        uint amount,
-        uint timestamp,
-        string memory description,
-        bool isCompleted
-    ) {
-        require(_transactionId < transactions.length, "Invalid transaction ID");
-        Transaction memory txn = transactions[_transactionId];
-        
-        return (
-            txn.from,
-            txn.to,
-            txn.amount,
-            txn.timestamp,
-            txn.description,
-            txn.isCompleted
-        );
     }
 }
 ```
 
-## 枚举 (Enums)
-
-### 基本枚举定义
+### 内存中的结构体
 
 ```solidity
-contract BasicEnums {
-    // 定义订单状态枚举
-    enum OrderStatus {
-        Pending,    // 0
-        Confirmed,  // 1
-        Shipped,    // 2
-        Delivered,  // 3
-        Cancelled   // 4
+contract MemoryStruct {
+    struct Point { uint x; uint y; }
+    function createPoint(uint _x, uint _y) public pure returns (Point memory) {
+        Point memory p = Point(_x, _y);
+        return p;
     }
-    
-    // 定义用户角色枚举
-    enum UserRole {
-        Guest,      // 0
-        User,       // 1
-        Moderator,  // 2
-        Admin       // 3
+}
+```
+
+## 枚举（Enum）
+
+### 枚举定义与使用
+
+```solidity
+contract EnumExample {
+    // 定义枚举
+    enum Status { Pending, Active, Inactive, Deleted }
+
+    Status public currentStatus;
+    mapping(address => Status) public userStatus;
+
+    // 设置状态
+    function setStatus(Status _status) public {
+        currentStatus = _status;
+        userStatus[msg.sender] = _status;
     }
-    
+
+    // 获取状态
+    function getStatus() public view returns (Status) {
+        return currentStatus;
+    }
+
+    // 判断状态
+    function isActive(address user) public view returns (bool) {
+        return userStatus[user] == Status.Active;
+    }
+}
+```
+
+### 枚举与结构体结合
+
+```solidity
+contract OrderManager {
+    enum OrderStatus { Created, Paid, Shipped, Completed, Cancelled }
     struct Order {
         uint id;
-        address customer;
+        address buyer;
         uint amount;
         OrderStatus status;
-        uint timestamp;
     }
-    
-    mapping(address => UserRole) public userRoles;
-    mapping(uint => Order) public orders;
-    uint public nextOrderId = 1;
-    
-    function setUserRole(address _user, UserRole _role) public {
-        require(userRoles[msg.sender] == UserRole.Admin, "Only admin can set roles");
-        userRoles[_user] = _role;
-    }
-    
-    function createOrder(uint _amount) public {
-        uint orderId = nextOrderId++;
-        
-        orders[orderId] = Order({
-            id: orderId,
-            customer: msg.sender,
+    Order[] public orders;
+
+    function createOrder(uint _id, uint _amount) public {
+        orders.push(Order({
+            id: _id,
+            buyer: msg.sender,
             amount: _amount,
-            status: OrderStatus.Pending,
-            timestamp: block.timestamp
-        });
+            status: OrderStatus.Created
+        }));
     }
-    
-    function updateOrderStatus(uint _orderId, OrderStatus _status) public {
-        require(orders[_orderId].id != 0, "Order does not exist");
-        require(
-            userRoles[msg.sender] == UserRole.Admin || 
-            userRoles[msg.sender] == UserRole.Moderator,
-            "Insufficient permissions"
-        );
-        
-        orders[_orderId].status = _status;
+
+    function updateStatus(uint index, OrderStatus _status) public {
+        require(index < orders.length, "Index out of bounds");
+        orders[index].status = _status;
+    }
+}
+```
+
+## 关键点说明
+
+- 结构体可嵌套、可与数组和映射结合使用
+- 结构体和枚举可声明为 storage、memory 或 calldata 类型
+- 枚举的底层是 uint 类型，从 0 开始递增
+- 枚举适合用于状态机、权限等有限状态场景
+
+## 最佳实践
+
+- 合理设计结构体字段，避免过大结构体导致 Gas 浪费
+- 枚举命名应简洁明了，避免歧义
+- 结构体和枚举建议与事件、错误等配合使用，提升可读性
+- 结构体数组删除时可用“最后一项覆盖法”节省 Gas
+
+---
+
+## 下一步操作
+
+1. **动手实践**：编写一个订单管理合约，使用结构体和枚举管理订单状态。
+2. **进阶挑战**：实现结构体嵌套、结构体数组与映射的组合应用。
+3. **深入阅读**：
+   - [Solidity 官方文档：结构体](https://docs.soliditylang.org/en/latest/types.html#structs)
+   - [Solidity 官方文档：枚举](https://docs.soliditylang.org/en/latest/types.html#enums)
