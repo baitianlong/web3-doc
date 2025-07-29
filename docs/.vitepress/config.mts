@@ -2,6 +2,7 @@ import { defineConfig } from 'vitepress'
 
 // https://vitepress.dev/reference/site-config
 export default defineConfig({
+  base: "/web3-doc/",
   title: "Web3 开发中文文档",
   description: "Web3 智能合约和前端开发完整指南",
   
@@ -63,7 +64,7 @@ export default defineConfig({
         link: '/wagmi/basics/introduction',
         activeMatch: '^/wagmi/'
       },
-    ],
+    ],  
 
     sidebar: {
       '/solidity/': [
